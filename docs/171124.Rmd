@@ -1,0 +1,75 @@
+---
+title: "R_quiz_171124"
+author: "Sung"
+date: "2017-11-25"
+output:
+  html_document:
+mainfont: NanumGothic
+fontsize: 12pt
+lang: Korean
+---
+```{r include=F}
+# global option
+knitr::opts_chunk$set(
+  comment = "##>",
+  collapse = T,
+  eval = T,
+  tidy = F,
+  message = F,
+  warning = F
+)
+```
+---  
+- Date 형 자료를 다루는 wrangling 문제
+```{r}
+# R weekly quiz - 171124
+set.seed(171124)
+buy.term <- function(n) floor(rgamma(n,5,1))
+terms <- matrix(buy.term(30), 10, 3)
+colnames(terms) <- LETTERS[1:3]
+(init.buy <- c('2017-11-01','2017-11-14','2017-11-23'))
+terms
+
+```
+- output
+```{r}
+source("term.dates.r")
+
+term.dates(init.buy, terms)
+
+```
+
+- `term.dates()` function code
+```{r eval = F}
+term.dates <- function(init_buy_dt, terms_mat){
+    ###
+    ### input ###
+    # init_buy_dt: 고객별 초기 날짜 값 벡터
+    # terms_mat: 다음 구매까지 걸린 일수 매트릭스
+    ###
+    ### output ###
+    # result: 초기 날짜 값과 다음 구매 걸린 일 수를 더한 날짜 데이터 프레임
+    ###
+    library(tidyverse)
+    library(lubridate)
+    
+    init_buy_dt <- ymd(init_buy_dt)
+    
+    init_buy_dt_plus_terms <- 
+        terms_mat %>% 
+        apply(2, cumsum) %>% 
+        t() + init_buy_dt
+    
+    result <- 
+        c(init_buy_dt, init_buy_dt_plus_terms) %>% 
+        as.character() %>% 
+        matrix(ncol = 3, byrow = T) %>%
+        as.data.frame() 
+    
+    colnames(result) <- colnames(terms) 
+    
+    return(result)
+}
+```
+
+

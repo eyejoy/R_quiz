@@ -1,0 +1,93 @@
+---
+title: "R_quiz_171209"
+author: "Sung"
+date: "2017-12-10"
+output:
+  html_document:
+mainfont: NanumGothic
+fontsize: 12pt
+lang: Korean
+---
+```{r include=F}
+# global option
+knitr::opts_chunk$set(
+  comment = "##>",
+  collapse = T,
+  eval = T,
+  tidy = F,
+  message = F,
+  warning = F
+)
+```
+---  
+- 주어진 고객별 구매일자 데이터를 이용하여 최초구매일별 고객 잔류표를 출력하는 문제
+    ```{r}
+    library(dplyr)
+    library(data.table)
+    
+    raw.data <-
+        data.frame(
+            user.id = c(
+                rep('A',4),rep('B',3),rep('C',5),rep('D',4),rep('E',4),rep('F',1),
+                rep('G',7),rep('H',6),rep('I',8),rep('J',7),rep('K',2),rep('L',3)),
+            buy.date = c(
+                '2017-01-01','2017-01-02','2017-01-03','2017-01-15',
+                '2017-01-02','2017-01-03','2017-01-04',
+                '2017-01-02','2017-01-03','2017-01-05','2017-01-11','2017-01-18',
+                '2017-01-03','2017-01-04','2017-01-05','2017-01-15',
+                '2017-01-04','2017-01-05','2017-01-06','2017-01-17',
+                '2017-01-04',
+                '2017-01-04','2017-01-05','2017-01-06','2017-01-15','2017-01-16','2017-01-17','2017-01-20',
+                '2017-01-05','2017-01-06','2017-01-07','2017-01-15','2017-01-16','2017-01-21',
+                '2017-01-06','2017-01-07','2017-01-08','2017-01-15','2017-01-16','2017-01-20','2017-01-21','2017-01-22',
+                '2017-01-08','2017-01-10','2017-01-11','2017-01-15','2017-01-16','2017-01-17','2017-01-21',
+                '2017-01-08','2017-01-11',
+                '2017-01-10','2017-01-11','2017-01-13')) %>%
+        mutate(buy.date = as.Date(buy.date))
+    ```
+- solution #1
+    ```{r}
+    # tibble로 변경
+    library(tidyverse)
+    raw.data <- as.tibble(raw.data)
+    
+    # package load
+    library(lubridate)
+    
+    # add "d_" each column names
+    add_colnames_d <- function(x) paste0("d-", as.character(x))
+    
+    #1 solution
+    raw.data %>% 
+        group_by(user.id) %>% 
+        arrange(buy.date) %>% 
+        mutate(user_date_rnk = row_number()) %>% 
+        filter(user_date_rnk == 1) %>% 
+        select(user.id, init.date = buy.date) %>% 
+        left_join(raw.data %>% 
+                      select(user.id, buy.date), by = "user.id") %>% 
+        mutate(diff_day = factor(as.numeric(difftime(buy.date, init.date, units = "days")), levels = c(0:16))) %>% 
+        group_by(init.date, diff_day) %>% 
+        summarise(cnt = n()) %>% 
+        complete(diff_day) %>% 
+        spread(diff_day, cnt, fill = 0) %>% 
+        ungroup() %>% 
+        rename_if(is.numeric, add_colnames_d)
+    ```
+
+- solution #2
+    ```{r}
+    #2 solution
+    raw.data %>% 
+        group_by(user.id) %>% 
+        mutate(init.date = min(buy.date), 
+               diff_day = factor(as.numeric(difftime(buy.date, init.date, units = "days")), levels = c(0:16))) %>% 
+        group_by(init.date, diff_day) %>% 
+        summarise(cnt = n()) %>% 
+        complete(diff_day) %>% 
+        spread(diff_day, cnt, fill = 0) %>% 
+        ungroup() %>% 
+        rename_if(is.numeric, add_colnames_d)
+    ```
+
+

@@ -7,3 +7,6 @@
 - my solution: https://eyejoy.github.io/R_quiz/171124
 
 
+#### 2017-12-09
+- quiz: [link](https://github.com/Curycu/weekly_R_quiz/blob/master/201712/1.retension/retension_quiz.Rmd)
+- my solution: https://eyejoy.github.io/R_quiz/171209
